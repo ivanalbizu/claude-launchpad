@@ -172,6 +172,7 @@ function detectRuntime(state: WizardState): RuntimeProfile {
 }
 
 const COMMON_ALLOW: readonly string[] = [
+  // Git read-only
   'Bash(git status)',
   'Bash(git diff:*)',
   'Bash(git log:*)',
@@ -180,6 +181,10 @@ const COMMON_ALLOW: readonly string[] = [
   'Bash(git branch -v)',
   'Bash(git branch --list:*)',
   'Bash(git remote -v)',
+  // Inocuous filesystem utilities Claude uses constantly
+  'Bash(ls:*)',
+  'Bash(cat:*)',
+  'Bash(mkdir -p:*)',
 ];
 
 const COMMON_DENY: readonly string[] = [
@@ -218,19 +223,19 @@ const PROFILES: Record<RuntimeProfile, { allow: readonly string[]; deny: readonl
     allow: [
       'Bash(pnpm dev)',
       'Bash(pnpm build)',
+      'Bash(pnpm preview)',
       'Bash(pnpm test:*)',
       'Bash(pnpm lint)',
       'Bash(pnpm format)',
+      'Bash(pnpm typecheck)',
       'Bash(npm test:*)',
       'Bash(npm run:*)',
+      'Bash(node --version)',
+      'Bash(pnpm --version)',
+      'Bash(npm --version)',
+      'Bash(npx --version)',
     ],
-    deny: [
-      'Bash(pnpm publish:*)',
-      'Bash(npm publish:*)',
-      'Bash(pnpm add:*)',
-      'Bash(pnpm install:*)',
-      'Bash(npm install:*)',
-    ],
+    deny: ['Bash(pnpm publish:*)', 'Bash(npm publish:*)'],
   },
   bun: {
     allow: [
@@ -239,8 +244,10 @@ const PROFILES: Record<RuntimeProfile, { allow: readonly string[]; deny: readonl
       'Bash(bun test:*)',
       'Bash(bun build:*)',
       'Bash(bunx:*)',
+      'Bash(bun --version)',
+      'Bash(node --version)',
     ],
-    deny: ['Bash(bun publish:*)', 'Bash(bun add:*)', 'Bash(bun install:*)', 'Bash(bun remove:*)'],
+    deny: ['Bash(bun publish:*)'],
   },
   deno: {
     allow: [
@@ -250,8 +257,9 @@ const PROFILES: Record<RuntimeProfile, { allow: readonly string[]; deny: readonl
       'Bash(deno fmt)',
       'Bash(deno lint)',
       'Bash(deno check:*)',
+      'Bash(deno --version)',
     ],
-    deny: ['Bash(deno publish:*)', 'Bash(deno install:*)'],
+    deny: ['Bash(deno publish:*)'],
   },
   rust: {
     allow: [
@@ -262,8 +270,10 @@ const PROFILES: Record<RuntimeProfile, { allow: readonly string[]; deny: readonl
       'Bash(cargo check)',
       'Bash(cargo fmt)',
       'Bash(cargo clippy:*)',
+      'Bash(cargo --version)',
+      'Bash(rustc --version)',
     ],
-    deny: ['Bash(cargo publish:*)', 'Bash(cargo install:*)'],
+    deny: ['Bash(cargo publish:*)'],
   },
   go: {
     allow: [
@@ -273,8 +283,9 @@ const PROFILES: Record<RuntimeProfile, { allow: readonly string[]; deny: readonl
       'Bash(go vet:*)',
       'Bash(go fmt:*)',
       'Bash(gofmt:*)',
+      'Bash(go version)',
     ],
-    deny: ['Bash(go get:*)', 'Bash(go install:*)'],
+    deny: [],
   },
   python: {
     allow: [
@@ -285,13 +296,13 @@ const PROFILES: Record<RuntimeProfile, { allow: readonly string[]; deny: readonl
       'Bash(mypy:*)',
       'Bash(uv run:*)',
       'Bash(poetry run:*)',
+      'Bash(python --version)',
+      'Bash(python3 --version)',
+      'Bash(pip --version)',
+      'Bash(uv --version)',
+      'Bash(poetry --version)',
     ],
-    deny: [
-      'Bash(pip install:*)',
-      'Bash(pip3 install:*)',
-      'Bash(uv add:*)',
-      'Bash(poetry add:*)',
-    ],
+    deny: [],
   },
 };
 

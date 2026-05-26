@@ -25,6 +25,7 @@ export function generateClaudeMd(state: WizardState): string {
     renderCommands(state),
     renderConventions(state),
     renderRestrictions(state),
+    renderPermissions(),
     renderAgents(state),
     renderSkills(state),
     renderMcpServers(state),
@@ -106,6 +107,20 @@ function renderRestrictions(state: WizardState): string | null {
   return `## Restricciones\n\n${blocks.join('\n\n')}`;
 }
 
+function renderPermissions(): string {
+  return [
+    '## Permisos',
+    '',
+    'El bundle `.claude/settings.json` configura los permisos de Claude Code con dos listas:',
+    '',
+    '- **`allow`** — la herramienta se ejecuta sin pedir confirmación.',
+    '- **`deny`** — rechazo inmediato, sin prompt ni override (salvo editar el fichero).',
+    '- **No listada** — Claude Code pregunta al usuario en el momento. Es el default sano.',
+    '',
+    'Solo se deniegan operaciones realmente irreversibles (`rm -rf`, `git push --force`, `sudo`, `publish`). Las operaciones tipo `pnpm add` / `npm install` se dejan **no listadas a propósito**: hay casos legítimos (bootstrap, dependencia justificada en _Restricciones_), pero requieren confirmación explícita en el momento.',
+  ].join('\n');
+}
+
 function renderAgents(state: WizardState): string | null {
   if (state.agentTemplates.length === 0) return null;
   const rows: string[] = [];
@@ -123,16 +138,29 @@ function renderAgents(state: WizardState): string | null {
 function renderSkills(state: WizardState): string | null {
   if (state.skillTemplates.length === 0) return null;
   const rows: string[] = [];
+  let hasManual = false;
   for (const id of state.skillTemplates) {
     const skill = SKILL_TEMPLATES.find((s) => s.id === id);
     if (!skill) continue;
     const invocation = skill.disableModelInvocation ? 'manual' : 'auto';
+    if (skill.disableModelInvocation) hasManual = true;
     rows.push(`- **${skill.label}** (\`${skill.name}\`, ${invocation}) — ${skill.description}`);
   }
   if (rows.length === 0) return null;
-  return ['## Skills disponibles', '', 'Definidas en `.claude/skills/<name>/SKILL.md`:', '', ...rows].join(
-    '\n',
-  );
+  const lines = [
+    '## Skills disponibles',
+    '',
+    'Definidas en `.claude/skills/<name>/SKILL.md`:',
+    '',
+    ...rows,
+  ];
+  if (hasManual) {
+    lines.push(
+      '',
+      '> Las skills `manual` no se autoanuncian en la lista de skills disponibles de Claude Code — se cargan solo cuando se invocan explícitamente por nombre.',
+    );
+  }
+  return lines.join('\n');
 }
 
 function renderMcpServers(state: WizardState): string | null {

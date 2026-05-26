@@ -37,7 +37,7 @@ export const STARTER_PACKS: readonly StarterPack[] = [
       ],
       restrictions: [
         '- No introducir otros frameworks UI (React, Vue, Svelte). Solo Lit.',
-        '- No instalar dependencias nuevas sin justificar coste de bundle.',
+        '- No instalar dependencias sin que se discuta primero el coste de bundle y el mantenimiento.',
         '- No commitear con lint o build en rojo.',
       ].join('\n'),
       commandTemplates: ['review', 'plan', 'test', 'security-review'],
@@ -75,7 +75,7 @@ export const STARTER_PACKS: readonly StarterPack[] = [
       restrictions: [
         '- Server Components por defecto; usar `"use client"` solo si es necesario (state, efectos, event handlers).',
         '- No mezclar fetching client-side + server-side para los mismos datos.',
-        '- No instalar dependencias sin preguntar.',
+        '- No instalar dependencias sin que se discuta primero el coste de bundle y el mantenimiento.',
       ].join('\n'),
       commandTemplates: ['review', 'plan', 'test', 'refactor', 'security-review'],
       agentTemplates: ['code-reviewer', 'planner', 'test-writer', 'debugger'],

@@ -4,6 +4,8 @@
 
 100% cliente, sin backend. Tus prompts y configuración viven en tu navegador.
 
+> ℹ️ **Alcance**: el bundle generado es **solo `.claude/`** (`CLAUDE.md` + `settings.json` + `agents/` + `skills/` + `commands/` + `mcpServers`). No genera `package.json`, `tsconfig.json` ni scaffolding del proyecto — para eso usa el starter de tu framework (Vite, create-next-app, etc.) y añade el bundle encima.
+
 ---
 
 ## ✨ Qué hace

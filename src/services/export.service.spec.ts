@@ -28,7 +28,7 @@ describe('generateSettings', () => {
   it('uses the python profile for python projects', () => {
     const settings = generateSettings(makeState({ techStack: ['python'] }));
     expect(settings.permissions.allow).toContain('Bash(pytest:*)');
-    expect(settings.permissions.deny).toContain('Bash(pip install:*)');
+    expect(settings.permissions.allow).toContain('Bash(python --version)');
   });
 
   it('uses the rust profile for rust projects', () => {
@@ -40,13 +40,51 @@ describe('generateSettings', () => {
   it('uses the go profile for go projects', () => {
     const settings = generateSettings(makeState({ techStack: ['go'] }));
     expect(settings.permissions.allow).toContain('Bash(go build:*)');
-    expect(settings.permissions.deny).toContain('Bash(go install:*)');
+    expect(settings.permissions.allow).toContain('Bash(go version)');
   });
 
   it('uses the deno profile when deno is in the stack', () => {
     const settings = generateSettings(makeState({ techStack: ['deno'] }));
     expect(settings.permissions.allow).toContain('Bash(deno run:*)');
-    expect(settings.permissions.deny).toContain('Bash(deno install:*)');
+    expect(settings.permissions.deny).toContain('Bash(deno publish:*)');
+  });
+
+  it('does NOT deny install/add operations in any profile (prompt is the intended UX)', () => {
+    const profiles: Array<{ tech: readonly string[]; forbidden: readonly string[] }> = [
+      {
+        tech: [],
+        forbidden: ['Bash(pnpm install:*)', 'Bash(pnpm add:*)', 'Bash(npm install:*)'],
+      },
+      { tech: ['bun'], forbidden: ['Bash(bun add:*)', 'Bash(bun install:*)'] },
+      { tech: ['deno'], forbidden: ['Bash(deno install:*)'] },
+      { tech: ['rust'], forbidden: ['Bash(cargo install:*)'] },
+      { tech: ['go'], forbidden: ['Bash(go install:*)', 'Bash(go get:*)'] },
+      {
+        tech: ['python'],
+        forbidden: ['Bash(pip install:*)', 'Bash(uv add:*)', 'Bash(poetry add:*)'],
+      },
+    ];
+    for (const { tech, forbidden } of profiles) {
+      const settings = generateSettings(makeState({ techStack: tech }));
+      for (const rule of forbidden) {
+        expect(settings.permissions.deny, `${rule} should not be in deny`).not.toContain(rule);
+      }
+    }
+  });
+
+  it('exposes inocuous filesystem utilities in COMMON_ALLOW', () => {
+    const settings = generateSettings(INITIAL_WIZARD_STATE);
+    expect(settings.permissions.allow).toContain('Bash(ls:*)');
+    expect(settings.permissions.allow).toContain('Bash(cat:*)');
+    expect(settings.permissions.allow).toContain('Bash(mkdir -p:*)');
+  });
+
+  it('exposes pnpm preview, typecheck and version checks on the node profile', () => {
+    const settings = generateSettings(INITIAL_WIZARD_STATE);
+    expect(settings.permissions.allow).toContain('Bash(pnpm preview)');
+    expect(settings.permissions.allow).toContain('Bash(pnpm typecheck)');
+    expect(settings.permissions.allow).toContain('Bash(pnpm --version)');
+    expect(settings.permissions.allow).toContain('Bash(node --version)');
   });
 
   it('prioritizes bun over node when both are present', () => {
@@ -86,9 +124,9 @@ describe('generateSettings', () => {
 
   it('keeps profile deny rules alongside hardened ones', () => {
     const settings = generateSettings(
-      makeState({ techStack: ['python'], hardenedPermissions: true }),
+      makeState({ techStack: ['rust'], hardenedPermissions: true }),
     );
-    expect(settings.permissions.deny).toContain('Bash(pip install:*)');
+    expect(settings.permissions.deny).toContain('Bash(cargo publish:*)');
     expect(settings.permissions.deny).toContain('Bash(curl:*)');
   });
 

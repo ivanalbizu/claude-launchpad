@@ -108,6 +108,22 @@ describe('generateClaudeMd', () => {
     expect(md).toContain('`release-prep`, manual');
   });
 
+  it('appends a manual-skills clarification note only when a manual skill is present', () => {
+    const withManual = generateClaudeMd(makeState({ skillTemplates: ['release-prep'] }));
+    expect(withManual).toContain('no se autoanuncian');
+
+    const onlyAuto = generateClaudeMd(makeState({ skillTemplates: ['changelog-update'] }));
+    expect(onlyAuto).not.toContain('no se autoanuncian');
+  });
+
+  it('always renders a Permisos section explaining the allow/deny model', () => {
+    const md = generateClaudeMd(INITIAL_WIZARD_STATE);
+    expect(md).toContain('## Permisos');
+    expect(md).toContain('`allow`');
+    expect(md).toContain('`deny`');
+    expect(md).toContain('No listada');
+  });
+
   it('ignores unknown skill ids silently', () => {
     const md = generateClaudeMd(makeState({ skillTemplates: ['does-not-exist'] }));
     expect(md).not.toContain('## Skills disponibles');
@@ -160,6 +176,7 @@ describe('generateClaudeMd', () => {
       '## Comandos',
       '## Convenciones',
       '## Restricciones',
+      '## Permisos',
       '## Sub-agentes disponibles',
       '## Skills disponibles',
       '## MCP servers',
